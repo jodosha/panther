@@ -1,6 +1,6 @@
 require 'bundler/setup'
-require 'panther/rack_server'
 require 'optparse'
+require 'panther'
 
 options = { port: 7152, host: 'localhost' }
 
@@ -23,4 +23,3 @@ OptionParser.new do |opts|
     options[:cert] = v
   end
 end.parse!
-
