@@ -110,15 +110,6 @@ module Panther
         end
       end
     end
-
-    protected
-
-    def process(socket)
-      @app.call(
-        HTTP::Request.new(socket),
-        HTTP::Response.new(socket)
-      )
-    end
   end
 end
 
