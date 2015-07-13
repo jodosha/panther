@@ -1,3 +1,5 @@
+require 'panther'
+
 module Rack
   module Handler
     class Panther
