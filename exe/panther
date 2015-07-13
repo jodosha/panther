@@ -1,0 +1,26 @@
+require 'bundler/setup'
+require 'panther/rack_server'
+require 'optparse'
+
+options = { port: 7152, host: 'localhost' }
+
+OptionParser.new do |opts|
+  opts.banner = 'Usage: panther [options] CONFIG_RU'
+
+  opts.on('-h', '--host [String]', 'host') do |v|
+    options[:host] = v
+  end
+
+  opts.on('-p', '--port [Integer]', 'listen port') do |v|
+    options[:port] = v
+  end
+
+  opts.on('-k', '--key [String]', 'SSL key') do |v|
+    options[:key] = v
+  end
+
+  opts.on('-c', '--cert [String]', 'SSL cert') do |v|
+    options[:cert] = v
+  end
+end.parse!
+
