@@ -25,8 +25,8 @@ module Panther
                              options.fetch(:port, DEFAULT_PORT))
 
       context      = OpenSSL::SSL::SSLContext.new
-      context.cert = OpenSSL::X509::Certificate.new(File.open('keys/cert.pem'))
-      context.key  = OpenSSL::PKey::RSA.new(File.open('keys/key.pem'))
+      context.cert = OpenSSL::X509::Certificate.new(File.open(options.fetch(:cert)))
+      context.key  = OpenSSL::PKey::RSA.new(File.open(options.fetch(:key)))
 
       context.npn_protocols = [DRAFT]
       context.ssl_version   = :SSLv23
