@@ -21,18 +21,24 @@ module Panther
     DEFAULT_PORT = 7152
 
     def initialize(app, options = {})
-      server = TCPServer.new(options.fetch(:host, DEFAULT_HOST),
-                             options.fetch(:port, DEFAULT_PORT))
+      @server = TCPServer.new(options.fetch(:host, DEFAULT_HOST),
+                              options.fetch(:port, DEFAULT_PORT))
 
-      context      = OpenSSL::SSL::SSLContext.new
-      context.cert = OpenSSL::X509::Certificate.new(File.open(options.fetch(:cert)))
-      context.key  = OpenSSL::PKey::RSA.new(File.open(options.fetch(:key)))
+      cert = options.fetch(:cert, nil)
+      key  = options.fetch(:key,  nil)
 
-      context.npn_protocols = [DRAFT]
-      context.ssl_version   = :SSLv23
+      if cert && key
+        context      = OpenSSL::SSL::SSLContext.new
+        context.cert = OpenSSL::X509::Certificate.new(File.open(cert))
+        context.key  = OpenSSL::PKey::RSA.new(File.open(key))
 
-      @server = OpenSSL::SSL::SSLServer.new(server, context)
-      @server.start_immediately = true
+        context.npn_protocols = [DRAFT]
+        context.ssl_version   = :SSLv23
+
+        @server = OpenSSL::SSL::SSLServer.new(@server, context)
+        @server.start_immediately = true
+      end
+
       @app    = app
     end
 
