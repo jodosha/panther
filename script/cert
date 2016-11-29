@@ -1,0 +1,14 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+generate_certificate() {
+  mkdir -p example/keys
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout example/keys/cert.key -out example/keys/cert.crt -subj "/C=IT/ST=Lazio/L=Rome/O=Hanami/OU=IT Department/CN=hanamirb.org"
+}
+
+main() {
+  generate_certificate
+}
+
+main

@@ -1,11 +1,18 @@
+#!/usr/bin/env ruby
+
 require 'bundler/setup'
 require 'optparse'
 require 'panther'
+require 'panther/rack/builder'
 
-options = { port: 7152, host: 'localhost' }
+options = { config: 'config.ru', port: 7152, host: 'localhost' }
 
 OptionParser.new do |opts|
-  opts.banner = 'Usage: panther [options] CONFIG_RU'
+  opts.banner = 'Usage: panther [options]'
+
+  opts.on('-c', '--config [String]', 'config') do |v|
+    options[:config] = v
+  end
 
   opts.on('-h', '--host [String]', 'host') do |v|
     options[:host] = v
@@ -23,3 +30,6 @@ OptionParser.new do |opts|
     options[:cert] = v
   end
 end.parse!
+
+app = Panther::Rack::Builder.build(options.fetch(:config))
+Panther::Server.new(app, options).run

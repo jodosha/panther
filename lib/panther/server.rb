@@ -3,6 +3,7 @@ require 'openssl'
 require 'http/2'
 require 'rack'
 require 'panther/rack/request'
+require 'panther/rack/response'
 
 module Panther
   class Logger
@@ -21,13 +22,14 @@ module Panther
     DEFAULT_PORT = 7152
 
     def initialize(app, options = {})
-      @server = TCPServer.new(options.fetch(:host, DEFAULT_HOST),
-                              options.fetch(:port, DEFAULT_PORT))
-
+      host = options.fetch(:host, DEFAULT_HOST)
+      port = options.fetch(:port, DEFAULT_PORT)
       cert = options.fetch(:cert, nil)
       key  = options.fetch(:key,  nil)
 
-      if cert && key
+      @server = TCPServer.new(host, port)
+
+      if (ssl = cert && key)
         context      = OpenSSL::SSL::SSLContext.new
         context.cert = OpenSSL::X509::Certificate.new(File.open(cert))
         context.key  = OpenSSL::PKey::RSA.new(File.open(key))
@@ -39,7 +41,9 @@ module Panther
         @server.start_immediately = true
       end
 
-      @app    = app
+      @app = app
+
+      $stdout.puts "Panther: listening http#{ssl ? 's' : nil}://#{host}:#{port}"
     end
 
     def run
@@ -81,25 +85,18 @@ module Panther
 
           stream.on(:half_close) do
             log.info 'client closed its end of the stream'
-            app.call(req.env)
-            # response = nil
-            # if req.post?
-            #   log.info "Received POST request, payload: #{req.input}"
-            #   response = "Hello HTTP 2.0! POST payload: #{req.input}"
-            # else
-            #   log.info 'Received GET request'
-            #   response = 'Hello HTTP 2.0! GET request'
+            response = Panther::Rack::Response.new(*app.call(req.env))
+            stream.headers(response.stream_headers, end_stream: false)
+
+            # split response into multiple DATA frames
+            body = response.__send__(:body).string
+            stream.data(body.slice!(0, 5), end_stream: false)
+            stream.data(body)
+
+            # response.buffer do |chunk|
+            #   stream.data(chunk, end_stream: false)
             # end
-
-            # stream.headers({
-            #   ':status' => '200',
-            #   'content-length' => response.bytesize.to_s,
-            #   'content-type' => 'text/plain',
-            # }, end_stream: false)
-
-            # # split response into multiple DATA frames
-            # stream.data(response.slice!(0, 5), end_stream: false)
-            # stream.data(response)
+            # stream.data("")
           end
         end
 

@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+main() {
+  bundle exec ../exe/panther --key=./keys/cert.key --cert=./keys/cert.crt
+}
+
+main
